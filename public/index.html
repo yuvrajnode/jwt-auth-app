@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Yuvraj Auth App</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    .container {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      width: 350px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #5c6bc0;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background-color: #3949ab;
+    }
+
+    .info-box {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .logout-btn {
+      background-color: #ef5350;
+      margin-top: 15px;
+    }
+
+    .logout-btn:hover {
+      background-color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Signup</h2>
+    <input id="signup-username" type="text" placeholder="Username" />
+    <input id="signup-password" type="password" placeholder="Password" />
+    <button onclick="signup()">Create Account</button>
+
+    <h2>Signin</h2>
+    <input id="signin-username" type="text" placeholder="Username" />
+    <input id="signin-password" type="password" placeholder="Password" />
+    <button onclick="signin()">Login</button>
+
+    <div class="info-box" id="user-box" style="display:none;">
+      Logged in as: <span id="information"></span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    async function signup() {
+      const username = document.getElementById("signup-username").value;
+      const password = document.getElementById("signup-password").value;
+
+      try {
+        const response = await axios.post("http://localhost:3000/signup", {
+          username,
+          password,
+        });
+        if (response.data.token) {
+          localStorage.setItem("token", response.data.token);
+          alert("Signed up successfully!");
+          getUserInformation();
+        } else {
+          alert(response.data.message || "Signup failed");
+        }
+      } catch (err) {
+        alert("Signup error");
+      }
+    }
+
+    async function signin() {
+      const username = document.getElementById("signin-username").value;
+      const password = document.getElementById("signin-password").value;
+
+      try {
+        const response = await axios.post("http://localhost:3000/signin", {
+          username,
+          password,
+        });
+        if (response.data.token) {
+          localStorage.setItem("token", response.data.token);
+          alert("Signed in successfully!");
+          getUserInformation();
+        } else {
+          alert(response.data.message || "Signin failed");
+        }
+      } catch (err) {
+        alert("Signin error");
+      }
+    }
+
+    async function logout() {
+      localStorage.removeItem("token");
+      document.getElementById("user-box").style.display = "none";
+      document.getElementById("information").innerText = "";
+      alert("Logged out successfully.");
+    }
+
+    async function getUserInformation() {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await axios.get("http://localhost:3000/me", {
+            headers: {
+              Authorization: token,
+            },
+          });
+          document.getElementById("information").innerText = response.data.username;
+          document.getElementById("user-box").style.display = "block";
+        } catch (err) {
+          alert("Failed to fetch user info.");
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", getUserInformation);
+  </script>
+</body>
+</html>
